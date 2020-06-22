@@ -20,6 +20,7 @@ func init() {
 type Config struct {
 	ClientID     string `yaml:"client_id"`
 	ClientSecret string `yaml:"client_secret"`
+	AppPort      int    `yaml:"app_port"`
 }
 
 // New - returns an instance of Config from the given filePath - If empty, will default to 'config.yml'.
@@ -44,6 +45,11 @@ func New(filePath string) *Config {
 	if err != nil {
 		log.Println("Unable to parse contents of YAML config file:", filePath)
 		log.Fatalln(err)
+	}
+
+	// Set some defaults if they weren't provided
+	if config.AppPort == 0 {
+		config.AppPort = 8000
 	}
 
 	// Validate that the config has the required values
