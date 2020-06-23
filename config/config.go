@@ -46,10 +46,17 @@ func New(filePath string) *Config {
 		log.Println("Unable to parse contents of YAML config file:", filePath)
 		log.Fatalln(err)
 	}
+	if DebugMode {
+		log.Println("Loaded config:")
+		config.Print()
+	}
 
 	// Set some defaults if they weren't provided
 	if config.AppPort == 0 {
 		config.AppPort = 8000
+		if DebugMode {
+			log.Println("Using default app_port:", config.AppPort)
+		}
 	}
 
 	// Validate that the config has the required values
