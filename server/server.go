@@ -22,18 +22,41 @@ var authorisationCode string
 var appContext context.Context
 var apiClient *http.Client
 
+// Some package level variables
+var callbackURI = "/auth/xero"
+var oAuthScopes = []string{
+	"openid",
+	"profile",
+	"email",
+	"accounting.transactions",
+	"accounting.settings",
+	"offline_access",
+}
+
 func init() {
 	appContext = context.Background()
 }
 
 // New - Returns an instance of the HTTP server.
-func New(c *config.Config, oc *oauth2.Config, callbackURI string) *http.Server {
-	appConfig = c
-	oauth2Config = oc
+func New() *http.Server {
+	appConfig = config.New("")
+	oauth2Config = &oauth2.Config{
+		ClientID:     appConfig.ClientID,
+		ClientSecret: appConfig.ClientSecret,
+		Scopes:       oAuthScopes,
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  "https://login.xero.com/identity/connect/authorize",
+			TokenURL: "https://identity.xero.com/connect/token",
+		},
+		RedirectURL: fmt.Sprintf("http://localhost:%d%s", appConfig.AppPort, callbackURI),
+	}
+	if config.DebugMode {
+		log.Println("RedirectURL:", oauth2Config.RedirectURL)
+	}
 	http.HandleFunc("/", handleIndexPage)
 	http.HandleFunc("/login", redirectToAuthorisationEndpoint)
 	http.HandleFunc(callbackURI, handleOAuthCallback)
-	return &http.Server{Addr: fmt.Sprintf(":%d", c.AppPort)}
+	return &http.Server{Addr: fmt.Sprintf(":%d", appConfig.AppPort)}
 }
 
 func redirectToAuthorisationEndpoint(w http.ResponseWriter, req *http.Request) {
