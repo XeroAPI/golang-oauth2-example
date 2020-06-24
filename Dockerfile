@@ -1,11 +1,13 @@
 FROM golang:1.14 as build
 
-WORKDIR /app
+ARG WORKDIR=/go/src/github.com/golang-oauth2-example/
 
-COPY go.mod go.sum /app/
+WORKDIR "${WORKDIR}"
+
+COPY go.mod go.sum "${WORKDIR}"
 RUN go mod download
 
-COPY . /app/
+COPY . "${WORKDIR}"
 RUN go build -o /example-oauth2-app
 
 ENTRYPOINT ["/example-oauth2-app"]

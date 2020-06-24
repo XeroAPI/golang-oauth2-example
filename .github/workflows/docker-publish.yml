@@ -1,0 +1,20 @@
+name: Docker
+
+on: push
+
+env:
+  # TODO: Change variable to your image's name.
+  IMAGE_NAME: golang-oauth2-example
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build Image
+        run: docker build --tag "${IMAGE_NAME}" "${PWD}"
+        
+      - name: Run Tests
+        run: docker run --rm --interactive --entrypoint go "${IMAGE_NAME}" -- test -v ./...
