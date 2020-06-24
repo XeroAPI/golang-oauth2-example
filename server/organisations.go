@@ -88,6 +88,6 @@ func (s *Server) handleOrganisationPage(w http.ResponseWriter, req *http.Request
 	primaryAddress := org.Addresses[0]
 	addressString := fmt.Sprintf("%s, %s %s", primaryAddress.AddressLine1, primaryAddress.City, primaryAddress.PostalCode)
 	w.Write([]byte("<p>" + addressString + "</p>"))
-	// w.Write([]byte("<p><a href=\"/invoices?tenantId=" + tenantID + "\"></a></p>"))
+	w.Write([]byte("<p><a href=\"/invoices?tenantId=" + tenantID + "\"></a></p>"))
 	w.Write([]byte(returnToHomepageLink))
 }
