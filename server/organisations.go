@@ -17,7 +17,7 @@ func (s *Server) handleOrganisationPage(w http.ResponseWriter, req *http.Request
 	}
 	tenantID := req.URL.Query().Get("tenantId")
 	if tenantID == "" {
-		w.Write([]byte("<p>Missing query string parameter 'id'.</p>"))
+		w.Write([]byte("<p>Missing query string parameter 'tenantId'.</p>"))
 		w.Write([]byte(returnToHomepageLink))
 		return
 	}

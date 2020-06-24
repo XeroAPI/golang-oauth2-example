@@ -50,6 +50,7 @@ func New(c *config.Config) *Server {
 
 	http.HandleFunc("/", s.handleIndexPage)
 	http.HandleFunc("/organisation", s.handleOrganisationPage)
+	http.HandleFunc("/invoices", s.handleInvoicePage)
 	http.HandleFunc(loginPath, s.redirectToAuthorisationEndpoint)
 	http.HandleFunc(callbackURI, s.handleOAuthCallback)
 
@@ -63,7 +64,7 @@ func (s *Server) Start() error {
 
 // getAuthorisationHeader returns the header used to authorise API requests.
 func (s *Server) getAuthorisationHeader() (string, string) {
-	return "authorisation", base64.StdEncoding.EncodeToString([]byte(
+	return "authorization", base64.StdEncoding.EncodeToString([]byte(
 		fmt.Sprintf("Basic %s:%s", s.config.ClientID, s.config.ClientSecret),
 	))
 }

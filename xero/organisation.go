@@ -4,10 +4,7 @@ import "errors"
 
 // OrganisationResponse - The response from the /organisation endpoint.
 type OrganisationResponse struct {
-	ID            string         `json:"id"`
-	Status        string         `json:"Status"`
-	ProviderName  string         `json:"ProviderName"`
-	DateTimeUTC   string         `json:"DateTimeUTC"`
+	Response
 	Organisations []Organisation `json:"Organisations"`
 }
 
