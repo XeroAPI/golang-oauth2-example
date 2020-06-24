@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"golang.org/x/oauth2"
 	"gopkg.in/yaml.v2"
 )
 
@@ -21,6 +22,7 @@ type Config struct {
 	ClientID     string `yaml:"client_id"`
 	ClientSecret string `yaml:"client_secret"`
 	AppPort      int    `yaml:"app_port"`
+	OAuth2Config *oauth2.Config
 }
 
 // New - returns an instance of Config from the given filePath - If empty, will default to 'config.yml'.

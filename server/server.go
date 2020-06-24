@@ -14,13 +14,15 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// Handles HTTP requests from the browser.
-
-var appConfig *config.Config
-var oauth2Config *oauth2.Config
-var authorisationCode string
-var appContext context.Context
-var apiClient *http.Client
+// Server - Represents the running app, and all the bits and pieces we need to make API calls.
+type Server struct {
+	config                 *config.Config
+	context                context.Context
+	httpServer             *http.Server
+	httpClient             *http.Client
+	oAuthAuthorisationCode string
+	oAuthToken             *oauth2.Token
+}
 
 // Some package level variables
 var callbackURI = "/auth/xero"
@@ -33,47 +35,44 @@ var oAuthScopes = []string{
 	"offline_access",
 }
 
-func init() {
-	appContext = context.Background()
-}
-
 // New - Returns an instance of the HTTP server.
-func New() *http.Server {
-	appConfig = config.New("")
-	oauth2Config = &oauth2.Config{
-		ClientID:     appConfig.ClientID,
-		ClientSecret: appConfig.ClientSecret,
-		Scopes:       oAuthScopes,
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  "https://login.xero.com/identity/connect/authorize",
-			TokenURL: "https://identity.xero.com/connect/token",
-		},
-		RedirectURL: fmt.Sprintf("http://localhost:%d%s", appConfig.AppPort, callbackURI),
-	}
+func New(c *config.Config) *Server {
+	c.OAuth2Config.RedirectURL = fmt.Sprintf("http://localhost:%d%s", c.AppPort, callbackURI)
 	if config.DebugMode {
-		log.Println("RedirectURL:", oauth2Config.RedirectURL)
+		log.Println("RedirectURL:", c.OAuth2Config.RedirectURL)
 	}
-	http.HandleFunc("/", handleIndexPage)
-	http.HandleFunc("/login", redirectToAuthorisationEndpoint)
-	http.HandleFunc(callbackURI, handleOAuthCallback)
-	return &http.Server{Addr: fmt.Sprintf(":%d", appConfig.AppPort)}
+
+	s := &Server{
+		config:     c,
+		context:    context.Background(),
+		httpServer: &http.Server{Addr: fmt.Sprintf(":%d", c.AppPort)},
+	}
+
+	http.HandleFunc("/", s.handleIndexPage)
+	http.HandleFunc("/login", s.redirectToAuthorisationEndpoint)
+	http.HandleFunc(callbackURI, s.handleOAuthCallback)
+
+	return s
 }
 
-func redirectToAuthorisationEndpoint(w http.ResponseWriter, req *http.Request) {
-	w.Header().Add("Location", oauth2Config.AuthCodeURL("state", oauth2.AccessTypeOffline))
+// Start - Calls ListenAndServe() on the http server.
+func (s *Server) Start() error {
+	return s.httpServer.ListenAndServe()
+}
+
+func (s *Server) redirectToAuthorisationEndpoint(w http.ResponseWriter, req *http.Request) {
+	w.Header().Add("Location", s.config.OAuth2Config.AuthCodeURL("state", oauth2.AccessTypeOffline))
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-func handleIndexPage(w http.ResponseWriter, req *http.Request) {
-	if authorisationCode == "" {
+func (s *Server) handleIndexPage(w http.ResponseWriter, req *http.Request) {
+	if s.oAuthAuthorisationCode == "" {
 		w.Header().Add("Location", "/login")
 		w.WriteHeader(http.StatusTemporaryRedirect)
 		return
 	}
 
-	// Todo - Something more efficient than re-initialising the client each time this endpoint is hit
-	client := oauth2Config.Client(appContext, getAuthorisationToken())
-	orgsResponse, err := client.Get("https://api.xero.com/connections")
+	orgsResponse, err := s.httpClient.Get("https://api.xero.com/connections")
 
 	if err != nil && orgsResponse.StatusCode != 200 {
 		errMsg := "An error occurred while trying to retrieve the organisations connected to this account."
@@ -106,27 +105,34 @@ func handleIndexPage(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte("</ul>"))
 }
 
-func handleOAuthCallback(w http.ResponseWriter, req *http.Request) {
-	authorisationCode = req.URL.Query().Get("code")
+func (s *Server) handleOAuthCallback(w http.ResponseWriter, req *http.Request) {
+	s.oAuthAuthorisationCode = req.URL.Query().Get("code")
 	if config.DebugMode {
-		log.Println("Received authorisation code:", authorisationCode)
+		log.Println("Received authorisation code:", s.oAuthAuthorisationCode)
 	}
+	s.httpClient = s.config.OAuth2Config.Client(s.context, s.getAuthorisationToken())
 	w.Header().Add("Location", "/")
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
-func getAuthorisationToken() *oauth2.Token {
+func (s *Server) getAuthorisationToken() *oauth2.Token {
 	encodedAuthHeaderValue := base64.StdEncoding.EncodeToString([]byte(
-		fmt.Sprintf("Basic %s:%s", appConfig.ClientID, appConfig.ClientSecret),
+		fmt.Sprintf("Basic %s:%s", s.config.ClientID, s.config.ClientSecret),
 	))
-	tok, err := oauth2Config.Exchange(
-		appContext,
-		authorisationCode,
+	tok, err := s.config.OAuth2Config.Exchange(
+		s.context,
+		s.oAuthAuthorisationCode,
 		oauth2.SetAuthURLParam("authorization", encodedAuthHeaderValue),
 	)
 	if err != nil {
 		log.Println("An error occurred while trying to exchange the authorisation code with the Xero API.")
 		log.Fatal(err)
+	}
+	// Also update the server object
+	s.oAuthToken = tok
+	if config.DebugMode {
+		log.Println("Got OAuth2 Token from API.")
+		log.Println("Token expiry:", tok.Expiry.String())
 	}
 	return tok
 }
