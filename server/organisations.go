@@ -15,13 +15,16 @@ func (s *Server) handleOrganisationPage(w http.ResponseWriter, req *http.Request
 	if s.preFlightCheck(w) {
 		return
 	}
-	orgID := req.URL.Query().Get("id")
-	if orgID == "" {
+	tenantID := req.URL.Query().Get("tenantId")
+	if tenantID == "" {
 		w.Write([]byte("<p>Missing query string parameter 'id'.</p>"))
 		w.Write([]byte(returnToHomepageLink))
 		return
 	}
-	orgsRequest, err := http.NewRequest("GET", "https://api.xero.com/api.xero/2.0/organisation", nil)
+	if config.DebugMode {
+		log.Println("Attempting to retrieve information for organisation ID:", tenantID)
+	}
+	orgsRequest, err := http.NewRequest("GET", "https://api.xero.com/api.xro/2.0/organisation", nil)
 	if err != nil {
 		errMsg := "An error occurred while trying to create a request to send to the Xero API."
 		w.Write([]byte("<p>" + errMsg + "</p>"))
@@ -31,7 +34,7 @@ func (s *Server) handleOrganisationPage(w http.ResponseWriter, req *http.Request
 		log.Println(err)
 		return
 	}
-	orgsRequest.Header.Add("xero-tenant-id", orgID)
+	orgsRequest.Header.Add("xero-tenant-id", tenantID)
 	orgsRequest.Header.Add(s.getAuthorisationHeader())
 	orgsResponse, err := s.httpClient.Do(orgsRequest)
 
@@ -53,30 +56,38 @@ func (s *Server) handleOrganisationPage(w http.ResponseWriter, req *http.Request
 	err = json.Unmarshal(respBody, &orgs)
 	if err != nil {
 		errMsg := "There was an error attempting to unmarshal the data from the organisation endpoint."
-		log.Println("Response Status:", orgsResponse.Status)
 		w.Write([]byte(errMsg + " Please check the log for details."))
 		log.Println(errMsg)
 		log.Println(err)
-		fmt.Println(respBody)
-		return
-	}
-
-	org, err := orgs.GetOrgByID(orgID)
-	if err != nil {
-		w.Write([]byte("<p>Sorry, we couldn't find the specified organisation!</p>"))
-		w.Write([]byte(returnToHomepageLink))
-		log.Println("Unable to find organisation with ID:", orgID)
 		if config.DebugMode {
-			log.Println("Available orgs:")
-			for _, org := range orgs.Organisations {
-				log.Println("-", org.OrganisationID, "-", org.LegalName)
-			}
+			log.Println("Response Status:", orgsResponse.Status)
+			log.Println("Response Body:")
 			fmt.Println(string(respBody))
 		}
 		return
 	}
+
+	org, err := orgs.GetOrgByID(tenantID)
+	if err != nil {
+		w.Write([]byte("<p>Sorry, we couldn't find the specified organisation!</p>"))
+		w.Write([]byte(returnToHomepageLink))
+		log.Println("Unable to find organisation with ID:", tenantID)
+		if config.DebugMode {
+			fmt.Println(string(respBody))
+			log.Println("Available orgs:")
+			for _, org := range orgs.Organisations {
+				log.Println("-", org.OrganisationID, "-", org.LegalName)
+			}
+		}
+		return
+	}
 	w.Write([]byte("<h1>" + org.LegalName + "</h1>"))
+	if org.IsDemoCompany {
+		w.Write([]byte("<p>This is a demo company.</p>"))
+	}
 	primaryAddress := org.Addresses[0]
 	addressString := fmt.Sprintf("%s, %s %s", primaryAddress.AddressLine1, primaryAddress.City, primaryAddress.PostalCode)
 	w.Write([]byte("<p>" + addressString + "</p>"))
+	// w.Write([]byte("<p><a href=\"/invoices?tenantId=" + tenantID + "\"></a></p>"))
+	w.Write([]byte(returnToHomepageLink))
 }

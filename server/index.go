@@ -30,6 +30,9 @@ func (s *Server) handleIndexPage(w http.ResponseWriter, req *http.Request) {
 		w.Write([]byte(errMsg + " Please check the log for details"))
 		log.Println(errMsg)
 		log.Fatalln(err)
+		if config.DebugMode {
+			fmt.Println(string(respBody))
+		}
 		return
 	}
 	var connections []xero.Connection
@@ -44,13 +47,10 @@ func (s *Server) handleIndexPage(w http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
-	if config.DebugMode {
-		fmt.Println(string(respBody))
-	}
 	w.Write([]byte("<h1>Connected Entities™</h1>"))
 	w.Write([]byte("<ul>"))
 	for _, org := range connections {
-		w.Write([]byte("<li><a href=\"/organisation?id=" + org.TenantID + "\">" + org.TenantName + "</a></li>"))
+		w.Write([]byte("<li><a href=\"/organisation?tenantId=" + org.TenantID + "\">" + org.TenantName + "</a></li>"))
 	}
 	w.Write([]byte("</ul>"))
 }
