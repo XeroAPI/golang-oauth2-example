@@ -9,9 +9,3 @@ COPY . /app/
 RUN go build -o /example-oauth2-app
 
 ENTRYPOINT ["/example-oauth2-app"]
-
-# FROM scratch
-
-# COPY --from=build /example-oauth2-app /usr/local/bin/example-oauth2-app
-
-# ENTRYPOINT ["/usr/local/bin/example-oauth2-app"]
