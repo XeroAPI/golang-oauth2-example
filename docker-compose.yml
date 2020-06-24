@@ -5,4 +5,4 @@ services:
     environment:
       DEBUG: "${DEBUG:-false}"
     ports:
-      - "${APP_PORT:-8000}":8000
+      - "${APP_PORT:-8000}:8000"
