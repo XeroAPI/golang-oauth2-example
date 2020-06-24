@@ -3,6 +3,12 @@ A basic example using golang to complete the OAuth 2 flow on Xero's API without 
 
 ## Running this app
 
+The first thing you'll need is the client ID and client secret from
+[your application](https://developer.xero.com/myapps/).
+
+Copy `config.example.yml` to a new file called `config.yml`. The two most important fields we need to change in
+`config.yml` are the `client_id`, and `client_secret`.
+
 You can run this in two ways: Docker, or natively with the go binary on your machine.
 
 There are also some environment variables that can be set to alter the behaviour of the application:
