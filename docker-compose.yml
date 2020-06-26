@@ -1,7 +1,11 @@
 version: "3.7"
 services:
   app:
-    build: .
+    build:
+      context: .
+      # target: build
+    volumes:
+      - "./config.yml:/app/config.yml"
     environment:
       DEBUG: "${DEBUG:-false}"
     ports:
