@@ -51,6 +51,7 @@ func New(c *config.Config) *Server {
 	http.HandleFunc("/", s.handleIndexPage)
 	http.HandleFunc("/organisation", s.handleOrganisationPage)
 	http.HandleFunc("/invoices", s.handleInvoicePage)
+	http.HandleFunc("/refresh", s.handleTokenRefreshRequest)
 	http.HandleFunc(loginPath, s.redirectToAuthorisationEndpoint)
 	http.HandleFunc(callbackURI, s.handleOAuthCallback)
 
