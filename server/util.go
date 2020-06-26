@@ -14,7 +14,22 @@ func (s *Server) handleOAuthCallback(w http.ResponseWriter, req *http.Request) {
 	if config.DebugMode {
 		log.Println("Received authorisation code:", s.oAuthAuthorisationCode)
 	}
-	s.httpClient = *s.config.OAuth2Config.Client(s.context, s.getAuthorisationToken())
+	tok, err := s.config.OAuth2Config.Exchange(
+		s.context,
+		s.oAuthAuthorisationCode,
+		oauth2.SetAuthURLParam(s.getAuthorisationHeader()),
+	)
+	if err != nil {
+		log.Println("An error occurred while trying to exchange the authorisation code with the Xero API.")
+		log.Fatalln(err)
+	}
+	// Also update the server struct
+	s.oAuthToken = tok
+	if config.DebugMode {
+		log.Println("Got OAuth2 Token from API.")
+		log.Println("Token expiry:", tok.Expiry.String())
+	}
+	s.httpClient = *s.config.OAuth2Config.Client(s.context, tok)
 	w.Header().Add("Location", "/")
 	w.WriteHeader(http.StatusTemporaryRedirect)
 }
@@ -32,25 +47,6 @@ func (s *Server) refreshAccessToken() error {
 	// Also update the Server struct properties
 	s.oAuthToken = newToken
 	return nil
-}
-
-func (s *Server) getAuthorisationToken() *oauth2.Token {
-	tok, err := s.config.OAuth2Config.Exchange(
-		s.context,
-		s.oAuthAuthorisationCode,
-		oauth2.SetAuthURLParam(s.getAuthorisationHeader()),
-	)
-	if err != nil {
-		log.Println("An error occurred while trying to exchange the authorisation code with the Xero API.")
-		log.Fatalln(err)
-	}
-	// Also update the server struct
-	s.oAuthToken = tok
-	if config.DebugMode {
-		log.Println("Got OAuth2 Token from API.")
-		log.Println("Token expiry:", tok.Expiry.String())
-	}
-	return tok
 }
 
 // preFlightCheck is run before any call that requires access to the API to ensure that we still have tokens that are

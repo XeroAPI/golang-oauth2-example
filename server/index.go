@@ -57,5 +57,6 @@ func (s *Server) handleIndexPage(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte("<h2>Other Fun Things</h2>"))
 	w.Write([]byte("<ul>"))
 	w.Write([]byte("<li><a href=\"/refresh\">Force Refresh Access Token</a></li>"))
+	w.Write([]byte("<li><a href=\"/segfault\">Cause a Segfault™</a></li>"))
 	w.Write([]byte("</ul>"))
 }
