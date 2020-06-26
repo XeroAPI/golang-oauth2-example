@@ -67,9 +67,20 @@ func (s *Server) handleInvoicePage(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.Write([]byte("<h1>Outstanding Invoices (Accounts Receivable)</h1>"))
+	w.Write([]byte("<h1>Recent Invoices (Accounts Receivable)</h1>"))
 	for _, invoice := range invoices.Invoices {
-		w.Write([]byte("<p>" + invoice.InvoiceNumber + "</p>"))
+		var invoiceStatusString string
+		if invoice.Status == "PAID" {
+			invoiceStatusString = " (PAID)"
+		}
+		line := fmt.Sprintf(
+			"<p>%s - %0.2f%s - %s</p>",
+			invoice.InvoiceNumber,
+			invoice.Total,
+			invoiceStatusString,
+			invoice.Contact.Name,
+		)
+		w.Write([]byte(line))
 	}
 	w.Write([]byte(returnToHomepageLink))
 }
