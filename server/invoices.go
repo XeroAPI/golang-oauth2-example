@@ -12,7 +12,8 @@ import (
 )
 
 func (s *Server) handleInvoicePage(w http.ResponseWriter, req *http.Request) {
-	if s.preFlightCheck(w) {
+	if s.preFlightCheck() {
+		s.redirectToLogin(w)
 		return
 	}
 	tenantID := req.URL.Query().Get("tenantId")

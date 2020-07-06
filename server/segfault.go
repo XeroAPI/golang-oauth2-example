@@ -5,10 +5,11 @@ import (
 )
 
 func (s *Server) handleSegfaultRequest(w http.ResponseWriter, req *http.Request) {
-	if s.preFlightCheck(w) {
+	if s.preFlightCheck() {
+		s.redirectToLogin(w)
 		return
 	}
 
-	w.Write([]byte("<h1>Why would you do that, you monster!?</h1>"))
+	w.Write([]byte("<h1>Why would you do that!?</h1>"))
 	w.Write([]byte(returnToHomepageLink))
 }

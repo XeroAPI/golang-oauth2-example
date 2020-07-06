@@ -8,11 +8,14 @@ import (
 	"net/http"
 
 	"github.com/XeroAPI/golang-oauth2-example/config"
+	"github.com/XeroAPI/golang-oauth2-example/server/ui"
 	"github.com/XeroAPI/golang-oauth2-example/xero"
 )
 
 func (s *Server) handleIndexPage(w http.ResponseWriter, req *http.Request) {
-	if s.preFlightCheck(w) {
+	if s.preFlightCheck() {
+		// Render the 'Connect to Xero' button
+		w.Write([]byte("<a href='" + loginPath + "'>" + ui.ConnectButtonSVG + "</a>"))
 		return
 	}
 

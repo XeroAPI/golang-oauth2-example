@@ -51,15 +51,16 @@ func (s *Server) refreshAccessToken() error {
 
 // preFlightCheck is run before any call that requires access to the API to ensure that we still have tokens that are
 // up to date.
-// Returns true if upstreaming processing should be stopped (e.g. if we're triggering a redirect here).
-func (s *Server) preFlightCheck(w http.ResponseWriter) bool {
-	if !s.oAuthToken.Valid() {
-		w.Header().Add("Location", loginPath)
-		w.WriteHeader(http.StatusTemporaryRedirect)
-		return true
-	}
-	s.refreshAccessTokenIfNeeded()
-	return false
+// Returns true if redirectToLogin() should be called.
+func (s *Server) preFlightCheck() bool {
+	// We return true if the oAuthToken is not valid, and that we should redirect to login.
+	// We don't perform the redirect here, as some pages will have mixed behaviour (e.g. the index page)
+	return !s.oAuthToken.Valid()
+}
+
+func (s *Server) redirectToLogin(w http.ResponseWriter) {
+	w.Header().Add("Location", loginPath)
+	w.WriteHeader(http.StatusTemporaryRedirect)
 }
 
 // Refreshes the OAuth2 access token if it's within `renewalWindow` minutes of expiry.

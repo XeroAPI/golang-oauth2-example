@@ -6,7 +6,8 @@ import (
 )
 
 func (s *Server) handleTokenRefreshRequest(w http.ResponseWriter, req *http.Request) {
-	if s.preFlightCheck(w) {
+	if s.preFlightCheck() {
+		s.redirectToLogin(w)
 		return
 	}
 
