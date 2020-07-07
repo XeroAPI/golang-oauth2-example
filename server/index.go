@@ -13,9 +13,12 @@ import (
 )
 
 func (s *Server) handleIndexPage(w http.ResponseWriter, req *http.Request) {
+	ui.WriteGlobalStylesTag(w)
 	if s.preFlightCheck() {
 		// Render the 'Connect to Xero' button
-		w.Write([]byte("<a href='" + loginPath + "'>" + ui.ConnectButtonSVG + "</a>"))
+		w.Write([]byte("<h1>Log in to Xero with OAuth 2.0!</h1>"))
+		w.Write([]byte("<p style='font-size:0.67rem'><em>you know you want to</em><p>"))
+		w.Write([]byte("<p><a href='" + loginPath + "'>" + ui.ConnectButtonSVG + "</a></p>"))
 		return
 	}
 

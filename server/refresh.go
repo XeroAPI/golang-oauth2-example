@@ -3,6 +3,8 @@ package server
 import (
 	"log"
 	"net/http"
+
+	"github.com/XeroAPI/golang-oauth2-example/server/ui"
 )
 
 func (s *Server) handleTokenRefreshRequest(w http.ResponseWriter, req *http.Request) {
@@ -11,6 +13,7 @@ func (s *Server) handleTokenRefreshRequest(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
+	ui.WriteGlobalStylesTag(w)
 	err := s.refreshAccessToken()
 
 	if err != nil {

@@ -32,3 +32,14 @@ This uses the `oauth2` library to handle the client calls.
 
 It also spawns a small HTTP server on `localhost:8000` in order to receive the data back from the Xero API once the user
 has authorised it.
+
+## Production Considerations
+
+Before you go copying and pasting parts of this implementation into your production codebase, you may want to consider:
+
+* Some kind of storage mechanism for tokens - Whether that be a database, or in-memory key/value store.
+* A solution for a proper UI - Or maybe convert this into a microservice that spits out JSON.
+* Injecting the `xero-tenant-id` header value via the HTTP client `RoundTripper` (https://stackoverflow.com/a/51629379)
+  if your architecture allows.
+* The struct models in the `xero/` directory are incomplete.
+* ~~Jordan's written most of the code~~

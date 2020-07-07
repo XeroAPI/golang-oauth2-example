@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/XeroAPI/golang-oauth2-example/config"
+	"github.com/XeroAPI/golang-oauth2-example/server/ui"
 	"github.com/XeroAPI/golang-oauth2-example/xero"
 )
 
@@ -16,6 +17,7 @@ func (s *Server) handleOrganisationPage(w http.ResponseWriter, req *http.Request
 		s.redirectToLogin(w)
 		return
 	}
+	ui.WriteGlobalStylesTag(w)
 	tenantID := req.URL.Query().Get("tenantId")
 	if tenantID == "" {
 		w.Write([]byte("<p>Missing query string parameter 'tenantId'.</p>"))

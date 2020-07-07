@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/XeroAPI/golang-oauth2-example/config"
+	"github.com/XeroAPI/golang-oauth2-example/server/ui"
 	"github.com/XeroAPI/golang-oauth2-example/xero"
 )
 
@@ -16,6 +17,7 @@ func (s *Server) handleInvoicePage(w http.ResponseWriter, req *http.Request) {
 		s.redirectToLogin(w)
 		return
 	}
+	ui.WriteGlobalStylesTag(w)
 	tenantID := req.URL.Query().Get("tenantId")
 	if tenantID == "" {
 		w.Write([]byte("<p>Missing query string parameter 'tenantId'.</p>"))
@@ -25,6 +27,8 @@ func (s *Server) handleInvoicePage(w http.ResponseWriter, req *http.Request) {
 	if config.DebugMode {
 		log.Println("Attempting to retrieve invoices for organisation ID:", tenantID)
 	}
+	// Note the filter here - We're retrieving invoices for accounts receivable.
+	// If you want to retrieve invoices for accounts payable, change "ACCREC" to "ACCPAY".
 	invoicesRequest, err := http.NewRequest("GET", "https://api.xero.com/api.xro/2.0/invoices?where=Type=\"ACCREC\"", nil)
 	if err != nil {
 		errMsg := "An error occurred while trying to create a request to send to the Xero API."
@@ -35,6 +39,8 @@ func (s *Server) handleInvoicePage(w http.ResponseWriter, req *http.Request) {
 		log.Println(err)
 		return
 	}
+	// We use httpClient.Do() instead of s.httpClient.Get(), because we need to inject the xero-tenant-id header value for
+	// these calls that retrieve information specific to one organisation.
 	invoicesRequest.Header.Add("xero-tenant-id", tenantID)
 	invoicesRequest.Header.Add(s.getAuthorisationHeader())
 	invoicesResponse, err := s.httpClient.Do(invoicesRequest)
