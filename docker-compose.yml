@@ -8,5 +8,6 @@ services:
       - "./config.yml:/app/config.yml"
     environment:
       DEBUG: "${DEBUG:-false}"
+      APP_PORT: "${APP_PORT:-8000}"
     ports:
-      - "${APP_PORT:-8000}:8000"
+      - "${APP_PORT:-8000}:${APP_PORT:-8000}"

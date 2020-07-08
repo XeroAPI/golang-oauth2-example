@@ -43,3 +43,4 @@ Before you go copying and pasting parts of this implementation into your product
   if your architecture allows.
 * The struct models in the `xero/` directory are incomplete.
 * ~~Jordan's written most of the code~~
+* References to `localhost` are hardcoded in several places. Might need to remove those.

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 
 	"github.com/XeroAPI/golang-oauth2-example/config"
 	"golang.org/x/oauth2"
@@ -42,6 +44,15 @@ func New(c *config.Config) *Server {
 		log.Println("RedirectURL:", c.OAuth2Config.RedirectURL)
 	}
 
+	// Set the port the webserver will listen on
+	if envAppPort := os.Getenv("APP_PORT"); envAppPort != "" {
+		var err error
+		c.AppPort, err = strconv.Atoi(envAppPort)
+		if err != nil {
+			log.Fatalln("An error occurred while trying to read the APP_PORT environment variable:", err)
+		}
+	}
+
 	s := &Server{
 		config:     c,
 		context:    context.Background(),
@@ -61,6 +72,7 @@ func New(c *config.Config) *Server {
 
 // Start - Calls ListenAndServe() on the http server.
 func (s *Server) Start() error {
+	log.Printf("Hey there! I'm up and running, and can be accessed at: http://localhost:%d\n", s.config.AppPort)
 	return s.httpServer.ListenAndServe()
 }
 
