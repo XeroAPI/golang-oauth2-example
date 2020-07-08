@@ -3,7 +3,6 @@ package server
 import (
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/XeroAPI/golang-oauth2-example/config"
 	"golang.org/x/oauth2"
@@ -61,17 +60,4 @@ func (s *Server) preFlightCheck() bool {
 func (s *Server) redirectToLogin(w http.ResponseWriter) {
 	w.Header().Add("Location", loginPath)
 	w.WriteHeader(http.StatusTemporaryRedirect)
-}
-
-// Refreshes the OAuth2 access token if it's within `renewalWindow` minutes of expiry.
-func (s *Server) refreshAccessTokenIfNeeded() {
-	renewalWindow := 15 * time.Minute
-	now := time.Now()
-	if !s.oAuthToken.Valid() {
-		s.refreshAccessToken()
-		return
-	}
-	if now.Add(renewalWindow).After(s.oAuthToken.Expiry) {
-		s.refreshAccessToken()
-	}
 }
