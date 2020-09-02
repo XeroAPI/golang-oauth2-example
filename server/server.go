@@ -39,18 +39,25 @@ var oAuthScopes = []string{
 
 // New - Returns an instance of the HTTP server.
 func New(c *config.Config) *Server {
+	defaultAppPort := 8080
+
+	// Set the port the webserver will listen on
+	if c.AppPort == 0 {
+		if envAppPort := os.Getenv("APP_PORT"); envAppPort != "" {
+			var err error
+			c.AppPort, err = strconv.Atoi(envAppPort)
+			if err != nil {
+				log.Fatalln("An error occurred while trying to read the APP_PORT environment variable:", err)
+			}
+		} else {
+			c.AppPort = defaultAppPort
+		}
+	}
+
+	// Set the redirect URL
 	c.OAuth2Config.RedirectURL = fmt.Sprintf("http://localhost:%d%s", c.AppPort, callbackURI)
 	if config.DebugMode {
 		log.Println("RedirectURL:", c.OAuth2Config.RedirectURL)
-	}
-
-	// Set the port the webserver will listen on
-	if envAppPort := os.Getenv("APP_PORT"); envAppPort != "" {
-		var err error
-		c.AppPort, err = strconv.Atoi(envAppPort)
-		if err != nil {
-			log.Fatalln("An error occurred while trying to read the APP_PORT environment variable:", err)
-		}
 	}
 
 	s := &Server{
