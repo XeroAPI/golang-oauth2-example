@@ -88,9 +88,11 @@ func (s *Server) handleOrganisationPage(w http.ResponseWriter, req *http.Request
 	if org.IsDemoCompany {
 		w.Write([]byte("<p>This is a demo company.</p>"))
 	}
-	primaryAddress := org.Addresses[0]
-	addressString := fmt.Sprintf("%s, %s %s", primaryAddress.AddressLine1, primaryAddress.City, primaryAddress.PostalCode)
-	w.Write([]byte("<p>" + addressString + "</p>"))
+	if len(org.Addresses) >= 1 {
+		primaryAddress := org.Addresses[0]
+		addressString := fmt.Sprintf("%s, %s %s", primaryAddress.AddressLine1, primaryAddress.City, primaryAddress.PostalCode)
+		w.Write([]byte("<p>" + addressString + "</p>"))
+	}
 	w.Write([]byte("<p><a href=\"/invoices?tenantId=" + tenantID + "\">View Invoices</a></p>"))
 	w.Write([]byte(returnToHomepageLink))
 }
